@@ -6,7 +6,7 @@
  * 
  * @author Kasper Hartwich <kasper@hartwich.net>
  * @package php-gratisdns
- * @version 0.9
+ * @version 0.9.1
  */
 
 class GratisDNS {
@@ -248,7 +248,23 @@ class GratisDNS {
     $html = $this->_request($post_array);
     return $this->_response($html);
   }
-
+  
+  function applyTemplate($domain, $template, $ttl = false) {
+    switch ($template) {
+      //Feel free to fork and add other templates. :)
+      case 'gmail':
+        $this->createRecord($domain, 'MX', $domain, 'aspmx.l.google.com', $ttl, 1);
+        $this->createRecord($domain, 'MX', $domain, 'alt1.aspmx.l.google.com', $ttl, 5);
+        $this->createRecord($domain, 'MX', $domain, 'alt2.aspmx.l.google.com', $ttl, 5);
+        $this->createRecord($domain, 'MX', $domain, 'aspmx2.googlemail.com', $ttl, 10);
+        $this->createRecord($domain, 'MX', $domain, 'aspmx3.googlemail.com', $ttl, 10);
+        $this->createRecord($domain, 'CNAME', 'mail.' . $domain, 'ghs.google.com', $ttl);
+        break;
+      default:
+        return error('Unknown template');
+    }
+  }
+  
   function deleteRecord($domainid, $recordid, $type = false) {
     if (!$type) {
       $record = getRecordById($domain, $recordid);
