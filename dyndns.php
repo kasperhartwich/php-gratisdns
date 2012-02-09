@@ -15,4 +15,4 @@ $ip = file_get_contents('http://whatismyip.org/');
 
 $dns = new GratisDNS($username, $password);
 $record = $dns->getRecordByDomain($domain, 'A', $host);
-$dns->updateRecord($domain, $record['recordid'], 'A', $host, $ip, 4800);
+$dns->updateRecord($domain, $record['recordid'], 'A', $host, $ip, 3600);
