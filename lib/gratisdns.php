@@ -152,7 +152,7 @@ class GratisDNS {
     return $this->_response($html);
   }
 
-  function createRecord($domain, $type, $host, $data, $ttl = false, $preference = false, $weight = false, $priority = false, $weight = false, $port = false) {
+  function createRecord($domain, $type, $host, $data, $ttl = false, $preference = false, $weight = false, $port = false) {
     $post_array = array(
       'action' => 'add' . strtolower($type). 'record',
       'user_domain' => $domain,
@@ -184,7 +184,6 @@ class GratisDNS {
         $post_array['exchanger'] = $data;
         $post_array['preference'] = $preference;
         $post_array['weight'] = $weight;
-        $post_array['priority'] = $priority;
         $post_array['port'] = $port;
         break;
       case 'SSHFP':
@@ -252,13 +251,27 @@ class GratisDNS {
   function applyTemplate($domain, $template, $ttl = false) {
     switch ($template) {
       //Feel free to fork and add other templates. :)
-      case 'gmail':
+      case 'googleapps':
         $this->createRecord($domain, 'MX', $domain, 'aspmx.l.google.com', $ttl, 1);
         $this->createRecord($domain, 'MX', $domain, 'alt1.aspmx.l.google.com', $ttl, 5);
         $this->createRecord($domain, 'MX', $domain, 'alt2.aspmx.l.google.com', $ttl, 5);
         $this->createRecord($domain, 'MX', $domain, 'aspmx2.googlemail.com', $ttl, 10);
         $this->createRecord($domain, 'MX', $domain, 'aspmx3.googlemail.com', $ttl, 10);
         $this->createRecord($domain, 'CNAME', 'mail.' . $domain, 'ghs.google.com', $ttl);
+        $this->createRecord($domain, 'CNAME', 'start.' . $domain, 'ghs.google.com', $ttl);
+        $this->createRecord($domain, 'CNAME', 'calendar.' . $domain, 'ghs.google.com', $ttl);
+        $this->createRecord($domain, 'CNAME', 'docs.' . $domain, 'ghs.google.com', $ttl);
+        $this->createRecord($domain, 'CNAME', 'sites.' . $domain, 'ghs.google.com', $ttl);
+        $this->createRecord($domain, 'SRV', '_jabber._tcp.' . $domain, 'xmpp-server.l.google.com', $ttl, 5, 0, 5269);
+        $this->createRecord($domain, 'SRV', '_jabber._tcp.' . $domain, 'xmpp-server1.l.google.com', $ttl, 20, 0, 5269);
+        $this->createRecord($domain, 'SRV', '_jabber._tcp.' . $domain, 'xmpp-server2.l.google.com', $ttl, 20, 0, 5269);
+        $this->createRecord($domain, 'SRV', '_jabber._tcp.' . $domain, 'xmpp-server3.l.google.com', $ttl, 20, 0, 5269);
+        $this->createRecord($domain, 'SRV', '_jabber._tcp.' . $domain, 'xmpp-server4.l.google.com', $ttl, 20, 0, 5269);
+        $this->createRecord($domain, 'SRV', '_xmpp-server._tcp.' . $domain, 'xmpp-server.l.google.com', $ttl, 5, 0, 5269);
+        $this->createRecord($domain, 'SRV', '_xmpp-server._tcp.' . $domain, 'xmpp-server1.l.google.com', $ttl, 20, 0, 5269);
+        $this->createRecord($domain, 'SRV', '_xmpp-server._tcp.' . $domain, 'xmpp-server2.l.google.com', $ttl, 20, 0, 5269);
+        $this->createRecord($domain, 'SRV', '_xmpp-server._tcp.' . $domain, 'xmpp-server3.l.google.com', $ttl, 20, 0, 5269);
+        $this->createRecord($domain, 'SRV', '_xmpp-server._tcp.' . $domain, 'xmpp-server4.l.google.com', $ttl, 20, 0, 5269);
         break;
       default:
         return error('Unknown template');

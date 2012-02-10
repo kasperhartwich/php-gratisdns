@@ -31,8 +31,8 @@ $dns->updateRecord('test123.dk', $record['recordid'], 'A', 'www.test123.dk', '12
 //Delete record
 $dns->deleteRecord($domainid, $record['recordid'], 'A');
 
-//Use template 'gmail' to add mxrecords for use with Google Apps
-$dns->applyTemplate('test123.dk', 'gmail');
+//Use template 'googleapps' to add mxrecords for use with Google Apps
+$dns->applyTemplate('test123.dk', 'googleapps');
 
 //Get text response from GratisDNS. (Often empty)
 echo $dns->getResponse();
