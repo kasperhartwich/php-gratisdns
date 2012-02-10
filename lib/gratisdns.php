@@ -162,7 +162,6 @@ class GratisDNS {
       case 'AAAA':
         $post_array['host'] = $host;
         $post_array['ip'] = $data;
-        #TODO: If ttl, $this->updateRecord();
         break;
       case 'CNAME':
         $post_array['host'] = $host;
