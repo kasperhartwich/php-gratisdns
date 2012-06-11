@@ -1,0 +1,19 @@
+{
+    "name": "kasperh/php-gratisdns",
+    "type": "library",
+    "description": "Alter DNS entries at GratisDNS via php. Administrer dine DNS indstillinger hos GratisDNS via php.",
+    "keywords": ["dns","gratisdns"],
+    "homepage": "http://github.com/kasperhartwich/php-gratisdns",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kasper Hartwich",
+            "email": "kasperhartwich@gmail.com",
+            "homepage": "http://kasperhartwich.dk",
+            "role": "Developer"
+        }
+    ],
+    "suggest": {
+        "ext-curl": "*"
+    }
+}
