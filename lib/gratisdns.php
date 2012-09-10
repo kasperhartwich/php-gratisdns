@@ -3,7 +3,7 @@
  * ProjectName: php-gratisdns
  * Plugin URI: http://github.com/kasperhartwich/php-gratisdns
  * Description: Altering your DNS records at GratisDNS
- * 
+ *
  * @author Kasper Hartwich <kasper@hartwich.net>
  * @package php-gratisdns
  * @version 0.9.1
@@ -25,7 +25,10 @@ class GratisDNS {
     $this->username = $username;
     $this->password = $password;
 
-    if (!function_exists('curl_init')) {die('No cURL.');}
+    if (!function_exists('curl_init')) {
+      throw new Exception('php cURL extension must be installed and enabled');
+    }
+
     $this->curl = curl_init();
     curl_setopt($this->curl, CURLOPT_URL, $this->admin_url);
     curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
@@ -39,7 +42,7 @@ class GratisDNS {
       $html = $this->_request(array('action' => 'secondarydns'));
     }
 
-    $htmldom = new simple_html_dom(); 
+    $htmldom = new simple_html_dom();
     $htmldom->load($html);
 
     $this->domains = array();
@@ -246,7 +249,7 @@ class GratisDNS {
     $html = $this->_request($post_array);
     return $this->_response($html);
   }
-  
+
   function applyTemplate($domain, $template, $ttl = false) {
     switch ($template) {
       //Feel free to fork and add other templates. :)
@@ -276,7 +279,7 @@ class GratisDNS {
         return error('Unknown template');
     }
   }
-  
+
   function deleteRecord($domainid, $recordid, $type = false) {
     if (!$type) {
       $record = getRecordById($domain, $recordid);
