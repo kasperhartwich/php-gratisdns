@@ -5,7 +5,8 @@ You can use this to alter your DNS entries at GratisDNS. cURL required.
 
 See `example.php` for how to use this and use `dyndns.php` to automatically update a record with a dynamic ip. 
 
-Feel free to fork.
+Feel free to fork and if you can improve this script please make a pull request. :)
+
 
 Licensed under MIT License.
 --
