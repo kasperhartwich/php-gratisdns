@@ -6,7 +6,7 @@
  *
  * @author Kasper Hartwich <kasper@hartwich.net>
  * @package php-gratisdns
- * @version 0.9.1
+ * @version 0.9.2
  */
 
 class GratisDNS {
