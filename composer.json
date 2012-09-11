@@ -15,5 +15,8 @@
     ],
     "suggest": {
         "ext-curl": "*"
+    },
+    "autoload": {
+        "classmap": ["lib/"]
     }
 }
