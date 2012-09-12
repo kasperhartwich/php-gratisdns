@@ -54,9 +54,29 @@ class GratisDNS {
     return $this->domains;
   }
 
-  function getDomainId($domain) {
-    $domaininfo = $this->getRecords($domain);
-    return $domaininfo ? $domaininfo['A']['localhost.' . $domain]['domainid'] : false;
+  /**
+   * Retrieve domain ID
+   *
+   * @param string $domain
+   * @return boolean
+   */
+  public function getDomainId($domain) {
+    $html = $this->_request(array('action' => 'changeDNSsetup', 'user_domain' => $domain));
+    $htmldom = new simple_html_dom();
+    $htmldom->load($html);
+
+    if (!$this->_response($html)) {
+      return false;
+    }
+
+    foreach($htmldom->find('input[name=domainid]') as $input) {
+      $value = (int)$input->value; // Make suer we get a int so we can use empty() to check value with.
+      if (!empty($value)) {
+        return $value;
+      }
+    }
+
+    return false;
   }
 
   function getRecordByDomain($domain, $type, $host) {
@@ -73,12 +93,15 @@ class GratisDNS {
   }
 
   function getRecordById($domain, $id) {
-    if (!$this->getRecords($domain)) {return false;};
-    if (isset($this->records[$id])) {
-      return $this->records[$id];
-    } else {
-      return $this->error("Unknown record_id '" . $id . "' for domain '" . $domain . "'");
+    if (!$this->getRecords($domain)) {
+      return false;
+    };
+
+    $record = $this->lookupRecord($id);
+    if ($record) {
+      return $record;
     }
+    return $this->error("Unknown record_id '" . $id . "' for domain '" . $domain . "'");
   }
 
   function getRecords($domain) {
@@ -129,10 +152,6 @@ class GratisDNS {
               //Not supported
               break;
           }
-
-          if (isset($this->records[$domain]['A'][$host]['recordid'])) {
-            $this->records[$this->records[$domain]['A'][$host]['recordid']] = $this->records[$domain][$type][$host];
-          }
         }
       }
       return $this->records[$domain];
@@ -157,6 +176,18 @@ class GratisDNS {
     return $this->_response($html);
   }
 
+  /**
+   *
+   * @param string $domain
+   * @param string $type
+   * @param string $host
+   * @param string $data
+   * @param integer $ttl Use with caution. Some guess work is involved and we may end up setting TTL on the wrong record
+   * @param string $preference
+   * @param integer $weight
+   * @param integer $port
+   * @return type
+   */
   function createRecord($domain, $type, $host, $data, $ttl = false, $preference = false, $weight = false, $port = false) {
     $post_array = array(
       'action' => 'add' . strtolower($type). 'record',
@@ -200,6 +231,7 @@ class GratisDNS {
     $html = $this->_request($post_array);
     $response = $this->_response($html);
     if ($response && $ttl) {
+      // Here be Dragons, recommend not to use this feature.
       $record = $this->getRecordByDomain($domain, $type, $host);
       $html = $this->updateRecord($domain, $record['recordid'], $type, $host, $data, $ttl);
       return $this->_response($html);
@@ -208,23 +240,41 @@ class GratisDNS {
     }
   }
 
-  function updateRecord($domain, $recordid, $type = false, $host = false, $data = false, $ttl = false) {
+
+  /**
+   * @param string $domain
+   * @param integer $recordid
+   * @param string $type
+   * @param string $host
+   * @param type $data
+   * @param type $ttl
+   * @return boolean
+   */
+  public function updateRecord($domain, $recordid, $type = false, $host = false, $data = false, $ttl = false) {
     $post_array = array(
       'action' => 'makechangesnow',
       'user_domain' => $domain,
       'recordid' => $recordid,
     );
-    if ($host) {
+
+    if ($type) {
       $post_array['type'] = $type;
     } else {
       $record = $this->getRecordById($domain, $recordid);
+      if (!$record) {
+        return false;
+      }
       $post_array['type'] = $record['type'];
+      $type = $record['type'];
     }
     if ($host) {
       $post_array['host'] = $host;
     } else {
       $record = $this->getRecordById($domain, $recordid);
-      $post_array['host'] = $rcord['host'];
+      if (!$record) {
+        return false;
+      }
+      $post_array['host'] = $record['host'];
     }
     switch ($type) {
       case 'A':
@@ -234,7 +284,10 @@ class GratisDNS {
       case 'TXT':
       case 'AFSDB':
         if (!$ttl) {
-          $record = $dns->getRecordByDomain($domain, $type, $host);
+          $record = $this->getRecordById($domain, $recordid);
+          if (!$record) {
+            return false;
+          }
           $ttl = $record['ttl'];
         }
         $post_array['new_data'] = $data;
@@ -282,12 +335,48 @@ class GratisDNS {
     }
   }
 
-  function deleteRecord($domainid, $recordid, $type = false) {
+  /**
+   * Delete a record
+   *
+   * @param string|integer $domain Domain name or domainid
+   * @param integer $recordid Record to be deleted
+   * @param string $type Record type, this is required if a domainid has been specified
+   * @return
+   */
+  function deleteRecord($domain, $recordid, $type = null) {
+
+    $have_domain = false;
+    if (is_numeric($domain)) {
+      $domainid = $domain;
+    } else {
+      $domainid = $this->getDomainId($domain);
+      if (!$domainid) {
+        return false;
+      }
+      $have_domain = true;
+    }
+
     if (!$type) {
-      $record = getRecordById($domain, $recordid);
+      if (!$have_domain) {
+        throw new \Exception('We dont support using domainid without specifying $type');
+      }
+
+      $record = $this->getRecordById($domain, $recordid);
+      if (!$record) {
+        return false;
+      }
+
       $type = $record['type'];
     }
-    $html = $this->_request(array('action' => 'deletegeneric', 'domainid' => $domainid, 'recordid' => $recordid, 'typeRR' => $type));
+
+    $params = array(
+      'action' => 'deletegeneric',
+      'domainid' => $domainid,
+      'recordid' => $recordid,
+      'typeRR' => $type
+    );
+
+    $html = $this->_request($params);
     return $this->_response($html);
   }
 
@@ -321,5 +410,23 @@ class GratisDNS {
     return false;
   }
 
+  private function lookupRecord($recordid) {
+
+    if (0 == $recordid) {
+      // We dont want to match NS records
+      throw new \Exception('Record may not be 0');
+    }
+
+    foreach ($this->records as $host) {
+      foreach ($host as $type) {
+        foreach ($type as $record) {
+          if ($recordid == $record['recordid']) {
+            return $record;
+          }
+        }
+      }
+    }
+    return false;
+  }
 }
 
