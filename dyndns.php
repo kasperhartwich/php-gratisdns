@@ -11,7 +11,7 @@ $password = 'your-password';
 $domain = 'test123.dk';
 $host = 'home.test123.dk';
 
-$ip = file_get_contents('http://whatismyip.org/');
+$ip = file_get_contents('http://wtfismyip.com/text');
 
 $dns = new GratisDNS($username, $password);
 $record = $dns->getRecordByDomain($domain, 'A', $host);
